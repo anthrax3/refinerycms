@@ -49,8 +49,8 @@ module Refinery
       changes.keys.include?("title") || changes.keys.include?("custom_slug")
     end
 
-    # Delegate SEO Attributes to globalize translation
-    delegate(*(Translation.seo_fields << {:to => :translation}))
+    # Delegate SEO Attributes to Mobility translation
+    #delegate(*(Translation.seo_fields << {:to => :translation}))
 
     validates :title, :presence => true
 
