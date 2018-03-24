@@ -8,6 +8,7 @@ module Refinery
   class Page < Core::BaseModel
     extend FriendlyId
 
+    extend Mobility
     translates :title, :menu_title, :custom_slug, :slug, :include => :seo_meta
 
     attribute :title
@@ -17,8 +18,10 @@ module Refinery
 
     after_save { translations.collect(&:save) }
 
+    is_seo_meta
+
     class Translation
-      is_seo_meta
+
 
       def self.seo_fields
         ::SeoMeta.attributes.keys.map{ |a| [a, :"#{a}="]}.flatten
@@ -36,7 +39,7 @@ module Refinery
           friendly_id_options[:use] << :scoped
           friendly_id_options.merge!(scope: :parent)
         end
-        friendly_id_options[:use] << :globalize
+        friendly_id_options[:use] << :mobility
         friendly_id_options
       end
     end
@@ -171,13 +174,13 @@ module Refinery
     # Consists of:
     #   * The current locale's translated slug
     def canonical
-      Globalize.with_locale(::Refinery::I18n.current_frontend_locale) { url }
+      Mobility.with_locale(::Refinery::I18n.current_frontend_locale) { url }
     end
 
     # The canonical slug for this particular page.
     # This is the slug for the current frontend locale.
     def canonical_slug
-      Globalize.with_locale(::Refinery::I18n.current_frontend_locale) { slug }
+      Mobility.with_locale(::Refinery::I18n.current_frontend_locale) { slug }
     end
 
     # Returns in cascading order: custom_slug or menu_title or title depending on
@@ -234,7 +237,7 @@ module Refinery
     end
 
     def nested_url
-      Globalize.with_locale(slug_locale) do
+      Mobility.with_locale(slug_locale) do
         if ::Refinery::Pages.scope_slug_by_parent && !root?
           self_and_ancestors.includes(:translations).map(&:to_param)
         else
@@ -376,7 +379,7 @@ module Refinery
     end
 
     def slug_locale
-      return Globalize.locale if translation_for(Globalize.locale, false).try(:slug).present?
+      return Mobility.locale if translation_for(Mobility.locale, false).try(:slug).present?
 
       if translations.empty? || translation_for(Refinery::I18n.default_frontend_locale, false).present?
         Refinery::I18n.default_frontend_locale
